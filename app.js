@@ -85,11 +85,44 @@ app.get('/register', (req, res) =>{
     res.render("register")
 })
 app.get("/secrets", (req, res) =>{
+ User.find({"secret": {$ne: null}}, (err, foundUsers)=>{
+     if (err){
+         console.log(err)
+     } else{
+         if (foundUsers){
+             res.render("secrets", {userWithSecrets: foundUsers})
+         }
+     }
+ })
+})
+app.get("/secrets", (req, res) =>{
     if(req.isAuthenticated()){
         res.render("secrets")
     } else{
         res.redirect("/login")
     }
+})
+app.get('/submit', (req, res) =>{
+    if(req.isAuthenticated()){
+        res.render("submit")
+    } else{
+        res.redirect("/login")
+    }
+})
+app.post('/submit', (req, res) =>{
+    const submitedSecret = req.body.secret
+    User.findById(req.user.id, (err, foundUser)=>{
+        if(err){
+            console.log(err)
+        }else{
+            if (foundUser){
+                foundUser.secret = submitedSecret
+                foundUser.save(()=>{
+                    res.redirect("/secrets")
+                })
+            }
+        }
+    })
 })
 app.get('/logout', (req, res, next)=> {
     req.logout((err) =>{
